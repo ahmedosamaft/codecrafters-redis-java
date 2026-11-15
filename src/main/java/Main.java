@@ -128,6 +128,18 @@ public class Main {
                 }
                 yield ":" + list.size() + "\r\n"; // ConcurrentLinkedDeque.size() is O(N)
             }
+            case "LPUSH" -> {
+                if (command.size() < 3) {
+                    yield wrongArgs("lpush");
+                }
+                String list_name = command.get(1);
+                list_store.putIfAbsent(list_name, new ConcurrentLinkedDeque<>());
+                ConcurrentLinkedDeque<String> list = list_store.get(list_name);
+                for (int i = 2; i < command.size(); i++) {
+                    list.addFirst(command.get(i));
+                }
+                yield ":" + list.size() + "\r\n";
+            }
             case "LRANGE" -> {
                 if (command.size() != 4) {
                     yield wrongArgs("lrange");
