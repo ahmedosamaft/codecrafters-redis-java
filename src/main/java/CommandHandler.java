@@ -87,6 +87,7 @@ public class CommandHandler {
     private static String wrongArgs(String name) {
         return "-ERR wrong number of arguments for '" + name + "' command\r\n";
     }
+    
     private String lpop(List<String> command) {
         if (command.size() != 2 && command.size() != 3) {
             return wrongArgs("lpop");
