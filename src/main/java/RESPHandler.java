@@ -1,12 +1,17 @@
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RESPHandler {
 
     public static String encodeBulkString(String str) {
-        return "$" + str.length() + "\r\n" + str + "\r\n";
+        return "$" + str.getBytes(StandardCharsets.UTF_8).length + "\r\n" + str + "\r\n";
+    }
+
+    public static String encodeInteger(long value) {
+        return ":" + value + "\r\n";
     }
 
     public static String encodeArray(List<String> command) {
@@ -15,8 +20,7 @@ public class RESPHandler {
         int length = command.size();
         string.append('*').append(length).append("\r\n");
         for (String word : command) {
-            int len = word.length();
-            string.append('$').append(len).append("\r\n").append(word).append("\r\n");
+            string.append('$').append(word.getBytes(StandardCharsets.UTF_8).length).append("\r\n").append(word).append("\r\n");
         }
 
         return string.toString();
@@ -45,7 +49,7 @@ public class RESPHandler {
             int size = readArg(buffer);
             byte[] data = new byte[size];
             buffer.get(data);
-            result.add(new String(data));
+            result.add(new String(data, StandardCharsets.UTF_8));
 
             buffer.get();
             buffer.get();
