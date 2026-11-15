@@ -5,6 +5,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,7 @@ public class Main {
     private static final int BUFFER_SIZE = 1024;
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final ConcurrentHashMap<String, String> store = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List> list_store = new ConcurrentHashMap<>();
     private static final PriorityQueue<HashMap.Entry<String, Long>> expirationQueue = new PriorityQueue<>(
             (a, b) -> Long.compare(a.getValue(), b.getValue())
     );
@@ -112,6 +114,18 @@ public class Main {
                 }
                 String value = store.get(command.get(1));
                 yield value == null ? "$-1\r\n" : RESPHandler.encodeBulkString(value);
+            }
+            case "RPUSH" -> {
+                if (command.size() < 3) {
+                    yield wrongArgs("rpush");
+                }
+                String list_name = command.get(1);
+                list_store.putIfAbsent(list_name, new ArrayList<>());
+                List<String> list = list_store.get(list_name);
+                for (int i = 2; i < command.size(); i++) {
+                    list.add(command.get(i));
+                }
+                yield ":" + list.size() + "\r\n";
             }
             default ->
                 "-ERR unknown command\r\n";
