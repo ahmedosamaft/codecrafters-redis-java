@@ -136,8 +136,9 @@ public class Main {
                 int start = Integer.parseInt(command.get(2));
                 int stop = Integer.parseInt(command.get(3));
                 ConcurrentLinkedDeque<String> list = list_store.get(list_name);
+                List<String> sb = new ArrayList<>();
                 if (list == null) {
-                    yield "*0\r\n";
+                    yield RESPHandler.encodeArray(sb);
                 }
                 int size = list.size();
                 if (start < 0) {
@@ -149,13 +150,13 @@ public class Main {
                 start = Math.max(start, 0);
                 stop = Math.min(stop, size - 1);
                 if (start > stop) {
-                    yield "*0\r\n";
+                    yield RESPHandler.encodeArray(sb);
                 }
-                List<String> sb = new ArrayList<>();
                 int index = 0;
                 for (String item : list) {
                     if (index >= start && index <= stop) {
                         sb.add(item);
+                        
                     }
                     index++;
                 }
