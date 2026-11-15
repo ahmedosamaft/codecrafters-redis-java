@@ -72,21 +72,21 @@ public class ListStore {
         }
     }
 
-    public String popLeft(String key, int count) {
+    public List<String> popLeft(String key, int count) {
         ArrayDeque<String> list = lists.get(key);
         if (list == null) {
             return null;
         }
         synchronized (list) {
-            String value = null;
+            List<String> value = new ArrayList<>();
             for (int i = 0; i < count; i++) {
                 String v = list.pollFirst();
                 if (v == null) {
                     break;
                 }
-                value = v;
+                value.add(v);
             }
-            return value;
+            return value.isEmpty() ? null : value;
         }
     }
 }
