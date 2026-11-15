@@ -5,12 +5,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Logger;
 
 public class Main {
@@ -19,7 +19,7 @@ public class Main {
     private static final int BUFFER_SIZE = 1024;
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final ConcurrentHashMap<String, String> store = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, List> list_store = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ConcurrentLinkedDeque> list_store = new ConcurrentHashMap<>();
     private static final PriorityQueue<HashMap.Entry<String, Long>> expirationQueue = new PriorityQueue<>(
             (a, b) -> Long.compare(a.getValue(), b.getValue())
     );
@@ -120,12 +120,12 @@ public class Main {
                     yield wrongArgs("rpush");
                 }
                 String list_name = command.get(1);
-                list_store.putIfAbsent(list_name, new ArrayList<>());
-                List<String> list = list_store.get(list_name);
+                list_store.putIfAbsent(list_name, new ConcurrentLinkedDeque<>());
+                ConcurrentLinkedDeque<String> list = list_store.get(list_name);
                 for (int i = 2; i < command.size(); i++) {
-                    list.add(command.get(i));
+                    list.addLast(command.get(i));
                 }
-                yield ":" + list.size() + "\r\n";
+                yield ":" + list.size() + "\r\n"; // ConcurrentLinkedDeque.size() is O(N)
             }
             default ->
                 "-ERR unknown command\r\n";
