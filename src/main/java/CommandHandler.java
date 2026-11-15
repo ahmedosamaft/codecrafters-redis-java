@@ -27,6 +27,7 @@ public class CommandHandler {
                         : RESPHandler.encodeInteger(listStore.pushLeft(command.get(1), command.subList(2, command.size())));
                 case "LRANGE" -> lrange(command);
                 case "LLEN" -> command.size() == 2 ? RESPHandler.encodeInteger(listStore.length(command.get(1))) : wrongArgs("llen");
+                case "LPOP" -> lpop(command);
                 default -> UNKNOWN_COMMAND;
             };
         } catch (NumberFormatException e) {
@@ -85,5 +86,19 @@ public class CommandHandler {
 
     private static String wrongArgs(String name) {
         return "-ERR wrong number of arguments for '" + name + "' command\r\n";
+    }
+    private String lpop(List<String> command) {
+        if (command.size() != 2 && command.size() != 3) {
+            return wrongArgs("lpop");
+        }
+        int count = 1;
+        if (command.size() == 3) {
+            count = Integer.parseInt(command.get(2));
+            if (count <= 0) {
+                return "-ERR invalid count in 'lpop' command\r\n";
+            }
+        }
+        String value = listStore.popLeft(command.get(1), count);
+        return value == null ? "$-1\r\n" : RESPHandler.encodeBulkString(value);
     }
 }
