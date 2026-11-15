@@ -9,7 +9,7 @@ public class RESPHandler {
         return "$" + str.length() + "\r\n" + str + "\r\n";
     }
 
-    public static String encode(List<String> command) {
+    public static String encodeArray(List<String> command) {
         StringBuilder string = new StringBuilder();
 
         int length = command.size();

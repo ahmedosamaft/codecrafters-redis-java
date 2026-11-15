@@ -5,6 +5,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -126,6 +127,39 @@ public class Main {
                     list.addLast(command.get(i));
                 }
                 yield ":" + list.size() + "\r\n"; // ConcurrentLinkedDeque.size() is O(N)
+            }
+            case "LRANGE" -> {
+                if (command.size() != 4) {
+                    yield wrongArgs("lrange");
+                }
+                String list_name = command.get(1);
+                int start = Integer.parseInt(command.get(2));
+                int stop = Integer.parseInt(command.get(3));
+                ConcurrentLinkedDeque<String> list = list_store.get(list_name);
+                if (list == null) {
+                    yield "*0\r\n";
+                }
+                int size = list.size();
+                if (start < 0) {
+                    start = size + start;
+                }
+                if (stop < 0) {
+                    stop = size + stop;
+                }
+                start = Math.max(start, 0);
+                stop = Math.min(stop, size - 1);
+                if (start > stop) {
+                    yield "*0\r\n";
+                }
+                List<String> sb = new ArrayList<>();
+                int index = 0;
+                for (String item : list) {
+                    if (index >= start && index <= stop) {
+                        sb.add(item);
+                    }
+                    index++;
+                }
+                yield RESPHandler.encodeArray(sb);
             }
             default ->
                 "-ERR unknown command\r\n";
