@@ -156,7 +156,6 @@ public class Main {
                 for (String item : list) {
                     if (index >= start && index <= stop) {
                         sb.add(item);
-                        
                     }
                     index++;
                 }
