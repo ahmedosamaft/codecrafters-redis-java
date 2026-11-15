@@ -1,9 +1,9 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * String key/value store with per-key expiry. Expired keys are evicted lazily on access.
- * Not thread-safe: intended to be used from the single event-loop thread.
+ * Thread-safe: backed by a {@link ConcurrentHashMap}.
  */
 public class KeyValueStore {
 
@@ -16,7 +16,7 @@ public class KeyValueStore {
         }
     }
 
-    private final Map<String, Entry> entries = new HashMap<>();
+    private final ConcurrentMap<String, Entry> entries = new ConcurrentHashMap<>();
 
     public void set(String key, String value) {
         entries.put(key, new Entry(value, Entry.NO_EXPIRY));
@@ -34,7 +34,8 @@ public class KeyValueStore {
             return null;
         }
         if (entry.isExpired(System.currentTimeMillis())) {
-            entries.remove(key);
+            // Conditional remove so a concurrent SET of the same key is not discarded
+            entries.remove(key, entry);
             return null;
         }
         return entry.value();
